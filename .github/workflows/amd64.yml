@@ -44,14 +44,20 @@ jobs:
       run: |
         rm *-amd64.tar
 
+    - name: Get current tag
+      id: get_tag
+      run: |
+        tag=$(git describe --tags --abbrev=0)
+        echo "::set-output name=TAG_NAME::$tag"
+
     - name: Create GitHub Release
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        tag_name: ${{ steps.get_tag.outputs.TAG_NAME }}
+        release_name: Release ${{ steps.get_tag.outputs.TAG_NAME }}
         draft: false
         prerelease: false
 
