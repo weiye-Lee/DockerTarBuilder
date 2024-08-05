@@ -41,11 +41,19 @@ jobs:
     - name: Compress the TAR files
       run: tar -czf x86-64-images.tar.gz *-amd64.tar
 
-    - name: Split compressed file if larger than 2GB
+    - name: Split the compressed file
+      run: split -b 500m x86-64-images.tar.gz x86-64-images-part-
+
+    - name: Upload artifact parts
+      uses: actions/upload-artifact@v4
+      with:
+        name: docker-images-tar-parts
+        path: x86-64-images-part-*
+        retention-days: 1
+
+    - name: Clean up intermediate files
       run: |
-        if [ $(stat -c%s "x86-64-images.tar.gz") -gt 2147483648 ]; then
-          split -b 2G -d x86-64-images.tar.gz x86-64-images.part
-        fi
+        rm *-amd64.tar x86-64-images.tar.gz
 
     - name: Create GitHub Release
       id: create_release
@@ -64,13 +72,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: |
-          ./x86-64-images.part*
-        asset_name: |
-          x86-64-images.part*
+        asset_path: ./x86-64-images-part-*
+        asset_name: x86-64-images-part-*
         asset_content_type: application/gzip
-
-    - name: Clean up intermediate files
-      run: |
-        rm *-amd64.tar
-        rm x86-64-images.part*
