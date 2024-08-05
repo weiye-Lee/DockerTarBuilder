@@ -65,15 +65,12 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: |
-          ./x86-64-images.tar.gz
           ./x86-64-images.part*
         asset_name: |
-          x86-64-images.tar.gz
           x86-64-images.part*
         asset_content_type: application/gzip
 
     - name: Clean up intermediate files
       run: |
         rm *-amd64.tar
-        rm x86-64-images.tar.gz
         rm x86-64-images.part*
