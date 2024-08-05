@@ -47,7 +47,7 @@ jobs:
     - name: Get current tag
       id: get_tag
       run: |
-        tag=$(git describe --tags --abbrev=0)
+        tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.1")
         echo "::set-output name=TAG_NAME::$tag"
 
     - name: Create GitHub Release
