@@ -7,6 +7,14 @@ on:
         description: '请填写docker镜像名称 多个用英文逗号分开'
         required: true
         default: 'alpine:latest'
+      release_tag:
+        description: '请填写release tag'
+        required: true
+        default: 'v0.0.1'
+      release_name:
+        description: '请填写release name'
+        required: true
+        default: 'Initial Release'
 
 jobs:
   pull_and_package:
@@ -44,20 +52,14 @@ jobs:
       run: |
         rm *-amd64.tar
 
-    - name: Get current tag
-      id: get_tag
-      run: |
-        tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.1")
-        echo "::set-output name=TAG_NAME::$tag"
-
     - name: Create GitHub Release
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ steps.get_tag.outputs.TAG_NAME }}
-        release_name: Release ${{ steps.get_tag.outputs.TAG_NAME }}
+        tag_name: ${{ github.event.inputs.release_tag }}
+        release_name: ${{ github.event.inputs.release_name }}
         draft: false
         prerelease: false
 
