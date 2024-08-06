@@ -44,16 +44,9 @@ jobs:
     - name: Split the compressed file
       run: split -b 500m x86-64-images.tar.gz x86-64-images-part-
 
-    - name: Upload artifact parts
-      uses: actions/upload-artifact@v4
-      with:
-        name: docker-images-tar-parts
-        path: x86-64-images-part-*
-        retention-days: 1
-
-    - name: Clean up intermediate files
-      run: |
-        rm *-amd64.tar x86-64-images.tar.gz
+    - name: List split files
+      id: list_files
+      run: ls x86-64-images-part-*
 
     - name: Create GitHub Release
       id: create_release
@@ -67,11 +60,12 @@ jobs:
         prerelease: false
 
     - name: Upload Release Assets
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./x86-64-images-part-*
-        asset_name: x86-64-images-part-*
-        asset_content_type: application/gzip
+      run: |
+        for file in x86-64-images-part-*; do
+          echo "Uploading $file..."
+          curl -s -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/gzip" \
+            --data-binary @"$file" \
+            "${{ steps.create_release.outputs.upload_url }}?name=$(basename $file)"
+        done
